@@ -17,14 +17,16 @@
 <div id="status" class="loading">Melding versturen...</div>
 <div id="count" class="count"></div>
 <script>
-const COUNTER_NS = "zaanstad-qr";
+const COUNTER_NS = "zaanstad";
 
 async function hitCount(uuid) {
   try {
-    const res = await fetch(`https://api.countapi.xyz/hit/${COUNTER_NS}/${uuid}`);
+    const res = await fetch(`https://countapi.mileshilliard.com/api/v1/hit/${COUNTER_NS}_${uuid}`);
     const data = await res.json();
-    document.getElementById("count").textContent =
-      `Deze QR is ${data.value}x gebruikt`;
+    if (data.value !== undefined) {
+      document.getElementById("count").textContent =
+        `Deze QR is ${data.value}x gebruikt`;
+    }
   } catch {}
 }
 
