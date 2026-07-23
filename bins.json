@@ -3,6 +3,6 @@
     "lat": 52.45659207331314,
     "lng": 4.818980097770692,
     "text": "volle prullenbak",
-    "cat": "https://api.meldingen.zaanstad.nl/signals/v1/public/terms/categories/overig/sub_categories/overig"
+    "cat": "https://api.meldingen.zaanstad.nl/signals/v1/public/terms/categories/afval/sub_categories/afvalbak"
   }
 }
