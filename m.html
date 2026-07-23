@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Melding versturen</title>
+<style>
+  body { font-family: sans-serif; max-width: 600px; margin: 2em auto; padding: 0 1em; }
+  .loading { text-align: center; padding: 2em; }
+  .done { color: #090; text-align: center; padding: 2em; }
+  .error { color: #c00; text-align: center; padding: 2em; }
+  pre { background: #f5f5f5; padding: 1em; overflow-x: auto; font-size: 0.9em; }
+</style>
+</head>
+<body>
+<div id="status" class="loading">Melding versturen...</div>
+<script>
+async function postMelding() {
+  const params = new URLSearchParams(window.location.search);
+  const uuid = params.get("uuid");
+
+  if (!uuid) {
+    document.getElementById("status").innerHTML =
+      `<div class="error"><h2>Geen UUID</h2><p>Deze pagina heeft een uuid parameter nodig.</p></div>`;
+    return;
+  }
+
+  try {
+    const resp = await fetch("bins.json?_=" + Date.now());
+    if (!resp.ok) throw new Error("bins.json niet gevonden");
+    const bins = await resp.json();
+    const bin = bins[uuid];
+
+    if (!bin) {
+      document.getElementById("status").innerHTML =
+        `<div class="error"><h2>Onbekende UUID</h2><p>Geen prullenbak gevonden met UUID <code>${uuid}</code></p></div>`;
+      return;
+    }
+
+    const body = {
+      location: {
+        geometrie: {
+          type: "Point",
+          coordinates: [bin.lng, bin.lat]
+        }
+      },
+      source: "online",
+      category: {
+        sub_category: bin.cat || "https://api.meldingen.zaanstad.nl/signals/v1/public/terms/categories/overig/sub_categories/overig"
+      },
+      reporter: { sharing_allowed: false },
+      incident_date_start: new Date().toISOString(),
+      text: bin.text || "melding"
+    };
+
+    const res = await fetch("https://api.meldingen.zaanstad.nl/signals/v1/public/signals/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      document.getElementById("status").innerHTML =
+        `<div class="done">
+          <h2>Melding verstuurd!</h2>
+          <p>Nummer: <strong>${data.id_display || data.id}</strong></p>
+          <p>${bin.text}</p>
+        </div>`;
+    } else {
+      throw new Error(JSON.stringify(data));
+    }
+  } catch (e) {
+    document.getElementById("status").innerHTML =
+      `<div class="error"><h2>Fout</h2><pre>${e.message}</pre></div>`;
+  }
+}
+postMelding();
+</script>
+</body>
+</html>
