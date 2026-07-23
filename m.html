@@ -9,12 +9,25 @@
   .loading { text-align: center; padding: 2em; }
   .done { color: #090; text-align: center; padding: 2em; }
   .error { color: #c00; text-align: center; padding: 2em; }
+  .count { font-size: 0.8em; color: #888; text-align: center; margin-top: 1em; }
   pre { background: #f5f5f5; padding: 1em; overflow-x: auto; font-size: 0.9em; }
 </style>
 </head>
 <body>
 <div id="status" class="loading">Melding versturen...</div>
+<div id="count" class="count"></div>
 <script>
+const COUNTER_NS = "zaanstad-qr";
+
+async function hitCount(uuid) {
+  try {
+    const res = await fetch(`https://api.countapi.xyz/hit/${COUNTER_NS}/${uuid}`);
+    const data = await res.json();
+    document.getElementById("count").textContent =
+      `Deze QR is ${data.value}x gebruikt`;
+  } catch {}
+}
+
 async function postMelding() {
   const params = new URLSearchParams(window.location.search);
   const uuid = params.get("uuid");
@@ -24,6 +37,8 @@ async function postMelding() {
       `<div class="error"><h2>Geen UUID</h2><p>Deze pagina heeft een uuid parameter nodig.</p></div>`;
     return;
   }
+
+  hitCount(uuid);
 
   try {
     const resp = await fetch("bins.json?_=" + Date.now());
