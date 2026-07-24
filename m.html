@@ -19,9 +19,9 @@
 <script>
 const COUNTER_NS = "zaanstad";
 
-async function hitCount(uuid) {
+async function hitCount(id) {
   try {
-    const res = await fetch(`https://countapi.mileshilliard.com/api/v1/hit/${COUNTER_NS}_${uuid}`);
+    const res = await fetch(`https://countapi.mileshilliard.com/api/v1/hit/${COUNTER_NS}_${id}`);
     const data = await res.json();
     if (data.value !== undefined) {
       document.getElementById("count").textContent =
@@ -32,25 +32,25 @@ async function hitCount(uuid) {
 
 async function postMelding() {
   const params = new URLSearchParams(window.location.search);
-  const uuid = params.get("uuid");
+  const id = params.get("id") || params.get("uuid");
 
-  if (!uuid) {
+  if (!id) {
     document.getElementById("status").innerHTML =
-      `<div class="error"><h2>Geen UUID</h2><p>Deze pagina heeft een uuid parameter nodig.</p></div>`;
+      `<div class="error"><h2>Geen ID</h2><p>Deze pagina heeft een <code>id</code> parameter nodig.</p></div>`;
     return;
   }
 
-  hitCount(uuid);
+  hitCount(id);
 
   try {
     const resp = await fetch("bins.json?_=" + Date.now());
     if (!resp.ok) throw new Error("bins.json niet gevonden");
     const bins = await resp.json();
-    const bin = bins[uuid];
+    const bin = bins[id];
 
     if (!bin) {
       document.getElementById("status").innerHTML =
-        `<div class="error"><h2>Onbekende UUID</h2><p>Geen prullenbak gevonden met UUID <code>${uuid}</code></p></div>`;
+        `<div class="error"><h2>Onbekende prullenbak</h2><p>Geen prullenbak gevonden met ID <code>${id}</code></p></div>`;
       return;
     }
 
