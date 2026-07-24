@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Prullenbak melden</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   body { font-family: -apple-system, sans-serif; max-width: 500px; margin: 2em auto; padding: 0 1em;
          text-align: center; }
@@ -20,6 +22,7 @@
   .hidden { display: none; }
   .count { font-size: 0.8em; color: #888; margin-top: 1em; }
   pre { background: #f5f5f5; padding: 1em; overflow-x: auto; font-size: 0.9em; text-align: left; }
+  #map { height: 200px; border-radius: 8px; margin: 1em 0; }
 </style>
 </head>
 <body>
@@ -34,6 +37,7 @@
   <h2>Deze prullenbak is vol?</h2>
   <p class="detail" id="bin-type"></p>
   <p class="detail" id="bin-location"></p>
+  <div id="map"></div>
   <p>Wil je dit melden bij de gemeente Zaanstad?</p>
   <p>
     <button class="btn btn-primary" onclick="send()">Ja, melden</button>
@@ -74,6 +78,8 @@
 <script>
 const COUNTER_NS = "zaanstad";
 let binData = null;
+let map = null;
+let marker = null;
 
 async function hitCount(id) {
   try {
@@ -94,6 +100,25 @@ function show(id) {
   document.getElementById("cancel-box").classList.add("hidden");
   document.getElementById("unknown-box").classList.add("hidden");
   document.getElementById(id).classList.remove("hidden");
+}
+
+function showMap(lat, lng) {
+  const container = document.getElementById("map");
+  if (map) {
+    map.remove();
+    map = null;
+  }
+  map = L.map(container, {
+    center: [lat, lng],
+    zoom: 16,
+    zoomControl: false,
+    attributionControl: false,
+    scrollWheelZoom: false
+  });
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19
+  }).addTo(map);
+  marker = L.marker([lat, lng]).addTo(map);
 }
 
 async function init() {
@@ -126,6 +151,7 @@ async function init() {
     document.getElementById("bin-type").textContent = "Type: " + type;
     document.getElementById("bin-location").textContent = "Wijk: " + wijk;
     show("confirm");
+    setTimeout(() => showMap(bin.lat, bin.lng), 100);
   } catch (e) {
     document.getElementById("error-msg").textContent = e.message;
     show("error-box");
